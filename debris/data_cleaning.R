@@ -5,33 +5,33 @@ library(modelsummary)
 library(lubridate)
 
 # read in data from inputs folder of R project
-raw_trafficdelay_data <-
+raw_ttcdelay_data <-
   read_csv(
     file = "inputs/data/raw_data.csv",
     show_col_types = FALSE,
   )
 
 # Make the names easier to type
-trafficdelay_data <-
-  clean_names(raw_trafficdelay_data)
+ttcdelay_data <-
+  clean_names(raw_ttcdelay_data)
 
 # look at unique values for each column
-unique(trafficdelay_data$route)
-unique(trafficdelay_data$time)
-unique(trafficdelay_data$day)
-unique(trafficdelay_data$location)
-unique(trafficdelay_data$incident)
-unique(trafficdelay_data$min_delay)
-unique(trafficdelay_data$min_gap)
-unique(trafficdelay_data$direction)
-unique(trafficdelay_data$vehicle)
+unique(ttcdelay_data$route)
+unique(ttcdelay_data$time)
+unique(ttcdelay_data$day)
+unique(ttcdelay_data$location)
+unique(ttcdelay_data$incident)
+unique(ttcdelay_data$min_delay)
+unique(ttcdelay_data$min_gap)
+unique(ttcdelay_data$direction)
+unique(ttcdelay_data$vehicle)
 
 # remove unneeded rows
-filtered_trafficdelay_data <- trafficdelay_data |>
+filtered_ttcdelay_data <- ttcdelay_data |>
   select(date, time, day, incident, min_delay)
 
-filtered_trafficdelay_data <-
-  filtered_trafficdelay_data |>
+cleaned_ttcdelay_data <-
+  filtered_ttcdelay_data |>
   mutate(
     day = factor(day),
     day = fct_relevel(
@@ -46,17 +46,23 @@ filtered_trafficdelay_data <-
     )
   )
 
+# remove rows with min_delay > 120
+cleaned_ttcdelay_data <-
+  cleaned_ttcdelay_data |>
+  filter(min_delay < 121)
+
+
 ### summaries ###
 # totals
-total_delay_mins <- sum(filtered_trafficdelay_data$min_delay)
-total_num_accidents <- nrow(filtered_trafficdelay_data)
+total_delay_mins <- print(sum(cleaned_ttcdelay_data$min_delay))
+total_num_accidents <- print(nrow(cleaned_ttcdelay_data))
 
 # what type of delay occurs most
-filtered_trafficdelay_data |>
+cleaned_ttcdelay_data |>
   ggplot(mapping = aes(x = incident)) +
   geom_bar() +
   labs(
-    title = "Most Common Traffic Delay Reason",
+    title = "Most Common TTC Delay Reason",
     x = "Incident",
     y = "Number of Delays"
   ) +
@@ -68,8 +74,8 @@ scale_fill_brewer(palette = "Set1")
 #### delay frequency and temporality ###
 
 # separate data into day, month, year
-cleaned_trafficdelay_data <- 
-  filtered_trafficdelay_data |> 
+cleaned_ttcdelay_data <- 
+  cleaned_ttcdelay_data |> 
   separate(
     col = date, 
     into = c("year", "month", "day_num"),
@@ -80,7 +86,7 @@ cleaned_trafficdelay_data <-
   select(-year)
 
 # what month do delays occur most
-cleaned_trafficdelay_data |>
+cleaned_ttcdelay_data |>
   ggplot(mapping = aes(x = month)) +
   geom_bar() +
   labs(
@@ -92,7 +98,7 @@ cleaned_trafficdelay_data |>
   scale_fill_brewer(palette = "Set1")
 
 # what day do delays occur most
-cleaned_trafficdelay_data |>
+cleaned_ttcdelay_data |>
   ggplot(mapping = aes(x = day)) +
   geom_bar() +
   labs(
@@ -104,7 +110,7 @@ cleaned_trafficdelay_data |>
   scale_fill_brewer(palette = "Set1")
 
 # what time do delays occur most
-cleaned_trafficdelay_data |>
+cleaned_ttcdelay_data |>
   ggplot(mapping = aes(x = time)) +
   geom_bar() +
   labs(
@@ -118,7 +124,7 @@ cleaned_trafficdelay_data |>
 #### severity of delays  ####
 
 # what month has the longest delays
-cleaned_trafficdelay_data |>
+cleaned_ttcdelay_data |>
   ggplot(mapping = aes(x = month, y = min_delay)) +
   geom_bar(stat = "identity") +
   labs(
@@ -131,7 +137,7 @@ cleaned_trafficdelay_data |>
 
 # Reason causing longest delays 
 options(scipen = 999) 
-cleaned_trafficdelay_data |>
+cleaned_ttcdelay_data |>
   ggplot(mapping = aes(x = incident, y = min_delay)) +
   geom_bar(stat = "identity") +
   labs(
@@ -145,12 +151,12 @@ cleaned_trafficdelay_data |>
 scale_fill_brewer(palette = "Set1")
 
 # Breakdown of 3 incident type that causes the most delays by day of week?
-incident_filter_trafficdelay_data <-
-  cleaned_trafficdelay_data |>
+incident_filter_ttcdelay_data <-
+  cleaned_ttcdelay_data |>
   filter(incident == 'Diversion' | incident == 'Mechanical' | incident == 'Operations - Operator')
 
 
-incident_filter_trafficdelay_data |>
+incident_filter_ttcdelay_data |>
   ggplot(mapping = aes(x = day)) +
   geom_bar() +
   labs(
@@ -168,7 +174,7 @@ incident_filter_trafficdelay_data |>
   )
 
 # Which incident type causes the most severity of delays according to day of week?
-incident_filter_trafficdelay_data |>
+incident_filter_ttcdelay_data |>
   ggplot(mapping = aes(x = day, y = min_delay)) +
   geom_bar(stat = "identity") +
   labs(
